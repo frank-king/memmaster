@@ -1,0 +1,70 @@
+<%- include header %>
+<div class="row">
+    <div class="jumbotron">
+        <h2 class="text-center"><%= word.word %></h2>
+        <!--
+        <% if (word.past_tense.length > 0) { %>
+        <li> <%= word.past_tense %> </li>
+        <% } %>
+        <% if (word.past_part.length > 0) { %>
+        <li> <%= word.past_part %> </li>
+        <% } %>
+        <% if (word.pressent_part.length > 0) { %>
+        <li> <%= word.pressent_part %> </li>
+        <% } %>
+        <% if (word.plural.length > 0) { %>
+        <li> <%= word.plural %> </li>
+        <% } %>
+        -->
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <a class="btn btn" data-toggle="collapse" href="#explanation_panel"> 释义 </a>
+                    </div>
+                    <div id="explanation_panel" class="panel-body panel-collapse">
+                        <ul class="list-group">
+                            <% if (word.meaning.length > 0) { %>
+                                <% word.meaning.forEach(function(meaning) { %>
+                                    <% if (meaning.length > 0) { %>
+                                    <li class="list-group-item"> <%= meaning %> </li>
+                                    <% } %>
+                                <% }) %>
+                            <% } %>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <a class="btn btn" data-toggle="collapse" href="#example_panel"> 例句 </a>
+                    </div>
+                    <div id="example_panel" class="panel-body panel-collapse">
+                        <ul class="list-group">
+                            <% if (word.example.length > 0) { %>
+                                <% word.example.forEach(function(example) { %>
+                                    <li class="list-group-item">
+                                        <%= example.sentence %> <br/>
+                                        <%= example.explanation %>
+                                    </li>
+                                <% }) %>
+                            <% } %>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group" role="group">
+            <% { %>
+            <% link_know_it = "/learning/word?action=know_it&word_id=" + word.id; %>
+            <% link_not_sure = "/learning/word?action=not_sure&word_id=" + word.id; %>
+            <% link_not_know = "/learning/word?action=not_know&word_id=" + word.id; %>
+            <a class="btn btn-lg btn-success" href="<%= link_know_it %>">认识</a>
+            <a class="btn btn-lg btn-warning" href="<%= link_not_sure %>">不确定</a>
+            <a class="btn btn-lg btn-danger" href="<%= link_not_know %>">不认识</a>
+            <% } %>
+        </div>
+    </div>
+</div>
+<%- include footer %>

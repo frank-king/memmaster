@@ -2,12 +2,15 @@
 * Module dependencies.
 */
 var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 // var methodOverride = require('method-override');
 var session = require('express-session');
+
+var routes = require('./routes');
+var user = require('./routes/user');
+var learning = require('./routes/learning');
+var word_list = require('./routes/word_list');
 
 var app = express();
 var mysql = require('mysql');
@@ -32,7 +35,7 @@ app.use(session({
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 60000 }
+  cookie: { maxAge: 600000 }
 }))
 
 // development only
@@ -44,5 +47,11 @@ app.post('/login', user.login); // call for login post
 app.get('/home/dashboard', user.dashboard); // call for dashboard page after login
 app.get('/home/logout', user.logout); // call for logout
 app.get('/home/profile', user.profile); // to render users profile
+
+app.get('/learning', learning.index);
+app.get('/learning/word', learning.word);
+app.get('/learning/next_word', learning.next_word);
+
+app.get('/word_list', word_list.index);
 // Middleware
 app.listen(8080);

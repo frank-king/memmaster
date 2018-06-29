@@ -1,3 +1,18 @@
+var check_user = require('./common').check_user;
+var md5 = require('md5');
+
+var check_exists = function(username, callback) {
+    var sql = "SELECT id, email, username FROM `users` " +
+        "WHERE `username`='" + username + "'";
+    db.query(sql, function (err, results) {
+        if (err) {
+            throw err;
+        }
+        if (results) {
+            callback();
+        }
+    });
+};
 
 //---------------------------------------------signup page call------------------------------------------------------
 exports.signup = function (req, res) {
@@ -7,7 +22,13 @@ exports.signup = function (req, res) {
 
         var username = post.user_name;
         var email = post.email;
-        var password = post.password;
+        var password = md5(post.password);
+
+        check_exists(username, function() {
+            message = "Error! user exists.";
+            console.log(message);
+            res.render('signup.ejs', { message: message });
+        });
 
         var sql = "INSERT INTO `users`(`username`, `email`, `password`)" +
             " VALUES ('" + username + "', '" + email + "', '" + password + "')";
@@ -15,6 +36,7 @@ exports.signup = function (req, res) {
         var query = db.query(sql, function (err, result) {
             message = "Succesfully! Your account has been created.";
             res.render('signup.ejs', { message: message });
+            res.redirect('/login');
         });
 
     } else {
@@ -30,7 +52,7 @@ exports.login = function (req, res) {
     if (req.method == "POST") {
         var post = req.body;
         var username = post.user_name;
-        var password = post.password;
+        var password = md5(post.password);
 
         var sql = "SELECT id, email, username FROM `users` " +
             "WHERE `username`='" + username + "' and password = '" + password + "'";
@@ -58,13 +80,9 @@ exports.login = function (req, res) {
 //-----------------------------------------------dashboard page functionality----------------------------------------------
 
 exports.dashboard = function (req, res, next) {
+    check_user(req, res);
     var user = req.session.user;
     var userId = req.session.userId;
-    console.log('ddd=' + userId);
-    if (userId == null) {
-        res.redirect("/login");
-        return;
-    }
 
     var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
 
@@ -74,17 +92,15 @@ exports.dashboard = function (req, res, next) {
 };
 //------------------------------------logout functionality----------------------------------------------
 exports.logout = function (req, res) {
+    req.session = null;
     req.session.destroy(function (err) {
         res.redirect("/login");
     })
 };
 //--------------------------------render user details after login--------------------------------
 exports.profile = function (req, res) {
+    check_user(req, res);
     var userId = req.session.userId;
-    if (userId == null) {
-        res.redirect("/login");
-        return;
-    }
 
     var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
     db.query(sql, function (err, result) {
@@ -93,11 +109,8 @@ exports.profile = function (req, res) {
 };
 //---------------------------------edit users details after login----------------------------------
 exports.editprofile = function (req, res) {
+    check_user(req, res);
     var userId = req.session.userId;
-    if (userId == null) {
-        res.redirect("/login");
-        return;
-    }
 
     var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
     db.query(sql, function (err, results) {
