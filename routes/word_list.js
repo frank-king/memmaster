@@ -1,19 +1,25 @@
-var check_user = require('./common').check_user;
 var parse_word_entry = require('./common').parse_word_entry;
+var db_words = require('../db/words');
 
 exports.index = function (req, res) {
-    check_user(req, res);
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
     var user = req.session.user;
 
     var type = req.query.word_list_type;
     // if (!type)
     //     type = 'all';
 
-    res.render('word_list/word_list.ejs', {type : type});
+    res.render('word_list.ejs', {type : type});
 }
 
 exports.data = function (req, res) {
-    check_user(req, res);
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
     var user = req.session.user;
 
     if (req.method == 'GET') {
@@ -22,6 +28,7 @@ exports.data = function (req, res) {
             type = 'all';
 
         console.log(type);
+        /*
         var sql = "SELECT * FROM `word_list`";
         switch (type) {
             case 'learnt':
@@ -64,6 +71,24 @@ exports.data = function (req, res) {
             res.status(200).json({ "data": words });
             // console.log(words);
             // res.render('word_list/word_list.ejs', {words : words, type : type});
+        });
+        */
+        db_words.select_word_list(user, type, function (words) {
+            words = words.map(function (word) {
+                word = parse_word_entry(word);
+                return [
+                    word.id,
+                    word.word,
+                    word.meaning === undefined ? "" : word.meaning.join('<br/>'),
+                    word.example === undefined ? ""
+                        : word.example.map(function (item) {
+                            return (item.sentence === undefined ? "" : item.sentence) + '<br/>' +
+                                (item.explanation === undefined ? "" : item.explanation);
+                        }).join('<br/>'),
+                ];
+            });
+            // console.log(words[0]);
+            res.status(200).json({ "data": words });
         });
     }
     // res.render('word_list/word_list.ejs');

@@ -10,6 +10,7 @@ var session = require('express-session');
 var routes = require('./routes');
 var user = require('./routes/user');
 var learning = require('./routes/learning');
+var review = require('./routes/review');
 var word_list = require('./routes/word_list');
 
 var app = express();
@@ -35,7 +36,7 @@ app.use(session({
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 600000 }
+  cookie: { maxAge: 60 * 60 * 1000 }
 }))
 
 // development only
@@ -51,6 +52,10 @@ app.get('/home/profile', user.profile); // to render users profile
 app.get('/learning', learning.index);
 app.get('/learning/word', learning.word);
 app.get('/learning/next_word', learning.next_word);
+
+app.get('/review', review.index);
+app.post('/review/word', review.word);
+app.get('/review/next_word', review.next_word);
 
 app.get('/word_list', word_list.index);
 app.get('/word_list/data', word_list.data);

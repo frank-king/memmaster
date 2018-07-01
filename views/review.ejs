@@ -1,0 +1,96 @@
+<%- include header %>
+<script type="text/javascript">
+    var err_times = 0;
+    function give_up() {
+        alert('错误次数太多，再好好记一下吧')
+        $('#detection_form').hide();
+        $('#title_word').removeClass('hidden');
+        $('#example_panel').removeClass('hidden');
+        $('#next_word_button').removeClass('hidden');
+        $.post('/review/word', { word: "<%= word.id %>", correct: 0 });
+    }
+
+    function success() {
+        alert('正确！');
+        $.post('/review/word', { word: "<%= word.id %>", correct: 1 });
+        // $.get('/review/next_word');
+        window.location.replace('/review/next_word');
+    }
+
+    function checkSpell() {
+        if ($('#detection_text').val() == "<%= word.word %>") {
+            success();
+        } else {
+            if (++err_times >= 3) {
+                give_up();
+            } else {
+                alert('再试试');
+            }
+        }
+    }
+
+    $('document').ready(function() {
+        /*
+        $('#detection_text').keydown(function (e) {
+            if (e.key == 'Enter') {
+                checkSpell();
+            }
+        })
+        */
+        $('#detection_btn').click(function () {
+            checkSpell();
+        })
+    });
+</script>
+<br/>
+<div class="row" id="detection_form">
+    <div class="col-md-3 col-md-offset-4 col-sm-5 col-sm-offset-3 col-xs-10">
+        <input type="text" class="form-control" id="detection_text" placeholder="请输入有下列含义的单词"/>
+    </div>
+    <div class="col-md-2 col-sm-2 col-xs-2">
+        <div class="input-group-btn">
+            <button class="btn btn-default" id="detection_btn">核对</button>
+        </div>
+    </div>
+</div>
+<br/>
+<h2 class="text-center hidden" id="title_word"><%= word.word %></h2>
+<div class="btn-group hidden" role="group" id="next_word_button">
+    <a class="btn btn-lg btn-default" href="/review/next_word">下一个单词</a>
+</div>
+<div class="row">
+    <div class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3">
+        <div class="panel panel-info">
+            <div class="panel-heading"> 释义 </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    <% if (word.meaning.length > 0) { %>
+                        <% word.meaning.forEach(function(meaning) { %>
+                            <% if (meaning.length > 0) { %>
+                            <li class="list-group-item"> <%= meaning %> </li>
+                            <% } %>
+                        <% }) %>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="example_panel" class="col-sm-6 hidden">
+        <div class="panel panel-warning">
+            <div class="panel-heading"> 例句 </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    <% if (word.example.length > 0) { %>
+                        <% word.example.forEach(function(example) { %>
+                            <li class="list-group-item">
+                                <%= example.sentence %> <br/>
+                                <%= example.explanation %>
+                            </li>
+                        <% }) %>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include footer %>

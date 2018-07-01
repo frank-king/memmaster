@@ -1,8 +1,11 @@
-var check_user = require('./common').check_user;
 var parse_word_entry = require('./common').parse_word_entry;
+var db_words = require('../db/words');
 
 exports.index = function (req, res) {
-    check_user(req, res);
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
     var user = req.session.user;
 
     // res.render('learning.ejs');
@@ -10,7 +13,10 @@ exports.index = function (req, res) {
 };
 
 exports.word = function (req, res) {
-    check_user(req, res);
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
     var user = req.session.user;
     if (req.method == 'GET') {
         var body = req.body;
@@ -28,6 +34,7 @@ exports.word = function (req, res) {
             else if (action == 'not_know')
                 familiarity = 0.0;
 
+            /*
             var sql = "INSERT INTO `learning` (" +
                 "`user_id`, `word_id`, `learn_date`, `familiarity`) VALUES ( '" +
                 user.id + "', '" + word_id + "', current_date(), '" + familiarity + "')";
@@ -37,15 +44,21 @@ exports.word = function (req, res) {
                     throw err;
                 }
             });
+            */
+            db_words.learn_a_word(user, word_id, familiarity, () => { });
             res.redirect('/learning/next_word');
         }
     }
 }
 
 exports.next_word = function (req, res) {
-    check_user(req, res);
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
     var user = req.session.user;
     if (req.method == 'GET') {
+        /*
         var sql = "SELECT * " +
             "FROM `word_list` AS word " +
             "LEFT JOIN `learning` AS learner ON " +
@@ -65,6 +78,12 @@ exports.next_word = function (req, res) {
                 // No words need to study.
                 console.log("no word");
             }
+        });
+        */
+        db_words.learn_next_word(user, function(word) {
+            var word = parse_word_entry(word);
+            console.log(word);
+            res.render('learning.ejs', { word: word });
         });
     }
 }

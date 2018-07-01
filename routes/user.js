@@ -1,18 +1,6 @@
-var check_user = require('./common').check_user;
 var md5 = require('md5');
-
-var check_exists = function(username, callback) {
-    var sql = "SELECT id, email, username FROM `users` " +
-        "WHERE `username`='" + username + "'";
-    db.query(sql, function (err, results) {
-        if (err) {
-            throw err;
-        }
-        if (results) {
-            callback();
-        }
-    });
-};
+var db_user = require('../db/users');
+var db_words = require('../db/words');
 
 //---------------------------------------------signup page call------------------------------------------------------
 exports.signup = function (req, res) {
@@ -23,21 +11,17 @@ exports.signup = function (req, res) {
         var email = post.email;
         var password = md5(post.password);
 
-        check_exists(username, function() {
+        db_user.check_exists(username, function() {
             var message = "Error! user exists.";
             console.log(message);
             res.render('signup.ejs', { message: message });
         });
 
-        var sql = "INSERT INTO `users`(`username`, `email`, `password`)" +
-            " VALUES ('" + username + "', '" + email + "', '" + password + "')";
-
-        var query = db.query(sql, function (err, result) {
-            message = "Succesfully! Your account has been created.";
+        db_user.signup(username, email, password, function() {
+            var message = "Succesfully! Your account has been created.";
             res.render('signup.ejs', { message: message });
             res.redirect('/login');
         });
-
     } else {
         res.render('signup');
     }
@@ -45,73 +29,80 @@ exports.signup = function (req, res) {
 
 //-----------------------------------------------login page call------------------------------------------------------
 exports.login = function (req, res) {
-    var message = '';
-    var sess = req.session;
-
     if (req.method == "POST") {
         var post = req.body;
         var username = post.user_name;
         var password = md5(post.password);
 
-        var sql = "SELECT id, email, username FROM `users` " +
-            "WHERE `username`='" + username + "' and password = '" + password + "'";
-        db.query(sql, function (err, results) {
-            if (err) {
-                throw err;
-            }
-            console.log(results);
-            if (results) {
-                req.session.userId = results[0].id;
-                req.session.user = results[0];
-                console.log(results[0].id);
-                res.redirect('/home/dashboard');
-            }
-            else {
-                message = 'Wrong Credentials.';
-                res.render('index.ejs', { message: message });
-            }
+        db_user.verify_user(username, password, function (user) {
+            req.session.user = user;
+            console.log(user.id);
+            res.redirect('/home/dashboard');
+        }, function () {
+            var message = 'Wrong Credentials.';
+            res.render('index.ejs', { message: message });
         });
     } else {
-        res.render('index.ejs', { message: message });
+        res.render('index.ejs', { message: '' });
     }
 
 };
 //-----------------------------------------------dashboard page functionality----------------------------------------------
 
 exports.dashboard = function (req, res, next) {
-    check_user(req, res);
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
     var user = req.session.user;
-    var userId = req.session.userId;
 
-    var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
-
-    db.query(sql, function (err, results) {
-        res.render('dashboard.ejs', { user: user });
+    db_words.summary_today(user.id, function (learnt_today, reviewed_today) {
+        // console.log(learnt_today);
+        // console.log(reviewed_today);
+        res.render('dashboard.ejs', {
+            user: user,
+            learnt_today: learnt_today,
+            reviewed_today: reviewed_today
+        });
     });
+    // res.render('dashboard.ejs', { user: user });
+    // db_user.get_user(user_id, function (user) {
+    //     res.render('dashboard.ejs', { user: user });
+    // });
 };
 //------------------------------------logout functionality----------------------------------------------
 exports.logout = function (req, res) {
     req.session.destroy(function (err) {
         res.redirect("/login");
+        return;
     })
 };
 //--------------------------------render user details after login--------------------------------
 exports.profile = function (req, res) {
-    check_user(req, res);
-    var userId = req.session.userId;
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
+    var user = req.session.user;
+    // var userId = req.session.userId;
 
-    var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
-    db.query(sql, function (err, result) {
-        res.render('profile.ejs', { data: result });
-    });
+    res.render('profile.ejs', { user: user });
+    // var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
+    // db.query(sql, function (err, result) {
+    //     res.render('profile.ejs', { data: result });
+    // });
 };
 //---------------------------------edit users details after login----------------------------------
 exports.editprofile = function (req, res) {
-    check_user(req, res);
-    var userId = req.session.userId;
+    if (req.session.user === undefined) {
+        res.redirect('/login');
+        return;
+    }
+    var user = req.session.user;
 
-    var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
-    db.query(sql, function (err, results) {
-        res.render('edit_profile.ejs', { data: results });
-    });
+    res.render('edit_profile.ejs', { user: user });
+    // var sql = "SELECT * FROM `users` WHERE `id`='" + userId + "'";
+    // db.query(sql, function (err, results) {
+    //     res.render('edit_profile.ejs', { data: results });
+    // });
 };

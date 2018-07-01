@@ -1,12 +1,3 @@
-exports.check_user = function(req, res) {
-    var user_id = req.session.userId;
-    console.log('user_id = ' + user_id);
-    if (!user_id || user_id === undefined) {
-        console.log('redirect to /login');
-        // console.log(res);
-        res.redirect("/login");
-    }
-};
 
 exports.parse_word_entry = function(word) {
     word.example = word.example.split(/\n/).map(example => {

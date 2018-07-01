@@ -1,12 +1,17 @@
 <%- include header %>
 <!-- Main component for a primary marketing message or call to action -->
 <div class="jumbotron">
-  <h1>Welcome</h1>
-  <p>Hello Dashboard</p>
-  <p>
-    <a class="btn btn-lg" href="/home/profile" role="button">Profile view »</a>
-    <br/>
-    <a class="btn btn-lg btn-primary" href="/learning" role="button">Start learning!</a>
-  </p>
+  <h2>欢迎回来， <%= user.username %> </h2>
+  <p> 今日已学习 <%= learnt_today %> 个单词，
+     已复习 <%= reviewed_today %> 个单词，继续加油哦！ </p>
+  <a class="btn btn-lg" href="/home/profile" role="button"> 个人信息 »</a>
+  <div class="row">
+    <div class="col-sm-2">
+      <a class="btn btn-lg btn-success" href="/learning" role="button">开始学习吧！</a>
+    </div>
+    <div class="col-sm-2">
+      <a class="btn btn-lg btn-primary" href="/review" role="button">开始复习吧！</a>
+    </div>
+  </div>
 </div>
 <%- include footer %>
