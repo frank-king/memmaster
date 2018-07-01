@@ -53,5 +53,6 @@ app.get('/learning/word', learning.word);
 app.get('/learning/next_word', learning.next_word);
 
 app.get('/word_list', word_list.index);
+app.get('/word_list/data', word_list.data);
 // Middleware
 app.listen(8080);

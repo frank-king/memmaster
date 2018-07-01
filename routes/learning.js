@@ -1,4 +1,5 @@
 var check_user = require('./common').check_user;
+var parse_word_entry = require('./common').parse_word_entry;
 
 exports.index = function (req, res) {
     check_user(req, res);
@@ -57,16 +58,7 @@ exports.next_word = function (req, res) {
                 throw err;
             }
             if (results) {
-                var word = results[0];
-                var examples = word.example.split(/\n/).map(example => {
-                    var obj = example.split(/\/r\/n/);
-                    return {
-                        sentence: obj[0],
-                        explanation: obj[1],
-                    };
-                });
-                word.example = examples;
-                word.meaning = word.meaning.split(/<br>\n/);
+                var word = parse_word_entry(results[0]);
                 console.log(word);
                 res.render('learning.ejs', {word : word});
             } else {

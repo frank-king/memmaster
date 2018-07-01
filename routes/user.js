@@ -16,7 +16,6 @@ var check_exists = function(username, callback) {
 
 //---------------------------------------------signup page call------------------------------------------------------
 exports.signup = function (req, res) {
-    message = '';
     if (req.method == "POST") {
         var post = req.body;
 
@@ -25,7 +24,7 @@ exports.signup = function (req, res) {
         var password = md5(post.password);
 
         check_exists(username, function() {
-            message = "Error! user exists.";
+            var message = "Error! user exists.";
             console.log(message);
             res.render('signup.ejs', { message: message });
         });
@@ -92,7 +91,6 @@ exports.dashboard = function (req, res, next) {
 };
 //------------------------------------logout functionality----------------------------------------------
 exports.logout = function (req, res) {
-    req.session = null;
     req.session.destroy(function (err) {
         res.redirect("/login");
     })

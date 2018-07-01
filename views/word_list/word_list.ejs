@@ -1,16 +1,85 @@
 <%- include ../header %>
 <!-- Main component for a primary marketing message or call to action -->
+<!--<script type="text/javascript">
+    // $(document).ready(function () {
+        $('#table_word_list').DataTable();
+    // });
+</script>-->
 <div class="jumbotron">
-    查看单词表
-    <br/>
-    <label class="radio-inline">
-        <input type="radio" name="word_list_type" id="word_list_all" value="all" checked> 所有 </input>
-    </label>
-    <label class="radio-inline">
-        <input type="radio" name="word_list_type" id="word_list_learnt" value="learnt"> 已学过 </input>
-    </label>
-    <label class="radio-inline">
-        <input type="radio" name="word_list_type" id="word_list_known" value="known"> 已掌握 </input>
-    </label>
+    <form class="form-inline" role="form" method="get" action="/word_list">
+        <div class="input-group">
+            <input type="radio" name="word_list_type" id="type_all" value="all"> 所有 </input>
+        </div>
+        <div class="input-group">
+            <input type="radio" name="word_list_type" id="type_learnt" value="learnt"> 已学过 </input>
+        </div>
+        <div class="input-group">
+            <input type="radio" name="word_list_type" id="type_known" value="known"> 已掌握 </input>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-default">查看单词表</button>
+        </div>
+    </form>
+    <!--<div data-spy="scroll" data-target="#table_word_list" data-offset="50" class="table-responsible">-->
+    <% if (type) { %>
+    <table id="table_word_list" class="table table-condensed display" style="width:100%">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Word</th>
+                <th>Meaning</th>
+                <th>Example</th>
+            </tr>
+        </thead>
+        <!--<tbody>
+            <% /*words.forEach(function(word) { %>
+            <tr>
+                <td> <%= word.id %> </td>
+                <td> <%= word.word %> </td>
+                <td> 
+                    <% word.meaning.forEach(function(meaning) { %>
+                        <%= meaning %> <br/>
+                    <% }) %>
+                </td>
+                <td> 
+                    <% word.example.forEach(function(example) { %>
+                        <%= example.sentence %> <br/>
+                        <%= example.explanation %> <br/>
+                    <% }) %>
+                </td>
+            </tr>
+            <% })*/ %>
+        </tbody>-->
+    </table>
+    <% } %>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if ("<%= type %>" == 'all') {
+                $('#type_all').prop("checked", true);
+            } else if ("<%= type %>" == 'learnt') {
+                $('#type_learnt').prop("checked", true);
+            } else if ("<%= type %>" == 'known') {
+                $('#type_known').prop("checked", true);
+            }
+            if ("<%= type %>") {
+                $('#table_word_list').DataTable({
+                    // processing: true,
+                    // serverSide: true,
+                    ajax: {
+                        url: '/word_list/data?type=' + "<%= type %>",
+                        type: 'GET',
+                        /*dataFilter: function(data) {
+                            var json = jQuery.parseJSON(data);
+                            json.recordsTotal = json.length;
+                            json.recordsFiltered = 10; // json.length;
+                            json.data = json.list;
+                            return JSON.stringify(json); // return JSON string
+                        }*/
+                    }
+                });
+            }
+        });
+    </script>
+    <!--</div>-->
 </div>
 <%- include ../footer %>
