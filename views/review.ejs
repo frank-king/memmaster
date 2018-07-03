@@ -7,6 +7,8 @@
         $('#title_word').removeClass('hidden');
         $('#example_panel').removeClass('hidden');
         $('#next_word_button').removeClass('hidden');
+        $('#meaning_panel').removeClass('col-md-offset-4')
+        $('#meaning_panel').removeClass('col-sm-offset-3')
         $.post('/review/word', { word: "<%= word.id %>", correct: 0 });
     }
 
@@ -59,7 +61,7 @@
     <a class="btn btn-lg btn-default" href="/review/next_word">下一个单词</a>
 </div>
 <div class="row">
-    <div class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3">
+    <div id="meaning_panel" class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3">
         <div class="panel panel-info">
             <div class="panel-heading"> 释义 </div>
             <div class="panel-body">

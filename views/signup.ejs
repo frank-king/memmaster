@@ -4,9 +4,67 @@
     <title>Sample Site</title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
     <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-    
+    <script src=https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.9/validator.min.js></script>
 </head>
 <body>
+    <!--<script type="text/javascript">
+        $(document).ready(function () {
+            $('#user_form').bootstrapValidator({
+                // To use feedback icons, ensure that you use Bootstrap v3.1.0 or later
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    user_name: {
+                        validators: {
+                            notEmpty: {
+                                message: '请输入用户名'
+                            }
+                        }
+                    },
+                    email: {
+                        validators: {
+                            notEmpty: {
+                                message: '请输入邮箱'
+                            },
+                            emailAddress: {
+                                message: '邮箱格式有误'
+                            }
+                        }
+                    },
+                    password: {
+                        validators: {
+                            stringLength: {
+                                min: 6,
+                                max: 14,
+                                message: '请输入6-14长度的密码'
+                            },
+                        }
+                    }
+                }
+            })
+            .on('success.form.bv', function(e) {
+                $('#success_message').slideDown({ opacity: "show" }, "slow"); // Do something ...
+                $('#contact_form').data('bootstrapValidator').resetForm();
+
+                // Prevent form submission
+                e.preventDefault();
+
+                // Get the form instance
+                var $form = $(e.target);
+
+                // Get the BootstrapValidator instance
+                var bv = $form.data('bootstrapValidator');
+
+                // Use Ajax to submit form data
+                $.post($form.attr('action'), $form.serialize(), function (result) {
+                    console.log(result);
+                }, 'json');
+            });
+        });
+    </script>-->
     <div class="container col-sm-12" id="mainform">
         <div id="signupbox" style=" margin-top:50px" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
             <div class="panel panel-info">
@@ -17,44 +75,74 @@
                     </div>
                 </div> 
                 <div class="panel-body" >
-                    <form class="form-horizontal" role="form" method="post" action="/signup" onSubmit="return checkblank(this);">
-                        <% if (message.length > 0) { %>
-                        <div class="alert alert-success col-sm-12">
-                            <%= message %>
-                        </div>
-                        <% } %>
-                        <div id="signupalert" style="display:none" class="alert alert-danger">
-                            <p>Error:</p>
-                            <span></span>
-                        </div>
-                            
-                        <div class="form-group">
-                            <label for="first_name" class="col-md-3 control-label">用户名</label>
-                            <div class="col-md-9">
-                                <input type="text" class="form-control" name="user_name" placeholder="username">
+                    <form id="user_form" data-toggle="validator" class="form-horizontal" role="form" method="post" action="/signup">
+                        <fieldset>
+                            <div class="form-group">
+                                <label for="user_name" class="col-md-3 control-label">用户名</label>
+                                <div class="col-md-9">
+                                    <input type="text"
+                                        class="form-control"
+                                        name="user_name"
+                                        placeholder="请输入用户名"
+                                        data-remote="/user/check_username"
+                                        data-required-error="请输入用户名"
+                                        data-error="用户名已存在"
+                                        required/>
+                                    <div class="help-block with-errors"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="last_name" class="col-md-3 control-label">邮箱</label>
-                            <div class="col-md-9">
-                                <input type="text" class="form-control" name="email" placeholder="email@example.com">
+                            <div class="form-group">
+                                <label for="email" class="col-md-3 control-label">邮箱</label>
+                                <div class="col-md-9">
+                                    <input type="email"
+                                        class="form-control"
+                                        name="email"
+                                        placeholder="请输入邮箱"
+                                        data-required-error="请输入邮箱"
+                                        data-type-error="邮箱格式有误"
+                                        required/>
+                                    <div class="help-block with-errors"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="password" class="col-md-3 control-label">密码</label>
-                            <div class="col-md-9">
-                                <input type="password" class="form-control" name="password" placeholder="password">
+                            <div class="form-group">
+                                <label for="password" class="col-md-3 control-label">密码</label>
+                                <div class="col-md-9">
+                                    <input type="password"
+                                        id="input_password"
+                                        class="form-control"
+                                        name="password"
+                                        data-minlength="6"
+                                        placeholder="请输入密码"
+                                        data-min-error="密码长度至少为6"
+                                        data-required-error="请输入密码"
+                                        required/>
+                                    <div class="help-block">密码长度至少为6</div>
+                                </div>
                             </div>
-                        </div>
+                            <div class="form-group">
+                                <label for="password" class="col-md-3 control-label">确认密码</label>
+                                <div class="col-md-9">
+                                    <input type="password"
+                                        class="form-control"
+                                        name="password_comfirmed"
+                                        placeholder="请确认输入密码"
+                                        data-match="#input_password"
+                                        data-required-error="请确认输入密码"
+                                        data-match-error="密码不匹配"
+                                        required/>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
 
-                        <div class="form-group">
-                            <!-- Button -->                                       
-                            <div class="col-md-offset-3 col-md-9">
-                                <button id="btn-signup" type="submit" class="btn btn-info">
-                                    <i class="icon-hand-right"/> &nbsp 立即注册
-                                </button>
+                            <div class="form-group">
+                                <!-- Button -->                                       
+                                <div class="col-md-offset-3 col-md-9">
+                                    <button id="btn-signup" type="submit" class="btn btn-info">
+                                        立即注册
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </fieldset>
                     </form>
                 </div>
             </div>

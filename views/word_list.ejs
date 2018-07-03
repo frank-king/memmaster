@@ -6,19 +6,64 @@
     // });
 </script>-->
 <form class="form-inline" role="form" method="get" action="/word_list">
-    <div class="input-group">
-        <input type="radio" name="word_list_type" id="type_all" value="all"> 所有 </input>
-    </div>
-    <div class="input-group">
-        <input type="radio" name="word_list_type" id="type_learnt" value="learnt"> 已学过 </input>
-    </div>
-    <div class="input-group">
-        <input type="radio" name="word_list_type" id="type_known" value="known"> 已掌握 </input>
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-default">查看单词表</button>
+    <div class="row">
+        <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4">
+            <div class="col-xs-4">
+                <input type="radio" name="word_list_type" id="type_all" value="all"> 所有 </input>
+            </div>
+            <div class="col-xs-4">
+                <input type="radio" name="word_list_type" id="type_learnt" value="learnt"> 已学过 </input>
+            </div>
+            <div class="col-xs-4">
+                <input type="radio" name="word_list_type" id="type_known" value="known"> 已掌握 </input>
+            </div>
+        </div>
+        <div class="col-xs-4 col-xs-offset-4 col-sm-2 col-sm-offset-0 col-md-1 col-lg-1">
+            <button type="submit" class="btn btn-default">查看单词表</button>
+        </div>
     </div>
 </form>
+<div id="word_edit_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 id="word_edit_modal_title" class="modal-title">编辑单词</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form" role="form">
+                    <input type="text" class="hidden" name="id" id="editing_word_id"></input>
+                    <div class="row">
+                        <div class="col-xs-10 col-xs-offset-1 input-group">
+                            <label for="editing_word">单词</label>
+                            <input type="text" class="form-control" name="word" id="editing_word"></input>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-10 col-xs-offset-1 input-group">
+                            <label for="editing_word_meaning">释义（每行一条）</label>
+                            <!--<input type="text" name="word_meaning" id="editing_word_meaning"></input>-->
+                            <textarea class="form-control" name="meaning" rows="2" id="editing_word_meaning"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-10 col-xs-offset-1 input-group">
+                            <label for="editing_word_example">例句（每两行为一组，一行例句一行解释）</label>
+                            <!--<input type="text" name="word_example" id="editing_word_example"></input>-->
+                            <textarea class="form-control" name="example" rows="4" id="editing_word_example"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="modal_btn_submit" class="btn btn-default">确定</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+
+    </div>
+</div>
 <!--<div data-spy="scroll" data-target="#table_word_list" data-offset="50" class="table-responsible">-->
 <% if (type) { %>
 <table id="table_word_list" class="table table-condensed display" style="width:100%">
@@ -52,6 +97,83 @@
 </table>
 <% } %>
 <script type="text/javascript">
+    var table_word_list;
+    function delete_words(word_ids) {
+        var comfirm_text = null;
+        if ("<%= type %>" == 'all') {
+            comfirm_text = "你确定要删除选中的" + word_ids.length + "个单词吗？";
+        } else if ("<%= type %>" == 'learnt') {
+            comfirm_text = "你确定要从已学习列表中删除选中的" + word_ids.length + "个单词吗？（同时将删除已掌握记录，但不会删除原单词记录）";
+        } else if ("<%= type %>" == 'known') {
+            comfirm_text = "你确定要从已掌握列表中删除选中的" + word_ids.length + "个单词吗？（将不会删除原单词记录）";
+        }
+        if (comfirm_text && window.confirm(comfirm_text)) {
+            console.log(word_ids);
+            $.post('/word_list/delete_words', {
+                type: "<%= type %>",
+                word_ids: word_ids,
+            }, function (data, status) {
+                if (status === "success") {
+                    // table_word_list.ajax.reload();
+                    table_word_list.rows({ selected: true }).remove().draw('full-hold');
+                }
+            });
+        }
+    }
+
+    function edit_or_create_word(word) {
+        // console.log(word);
+        var mode = "create";
+        $('#word_edit_modal').modal({ show: true });
+        if (!word) {
+            $('#word_edit_modal_title').text("新建单词");
+            $('#editing_word_id').val("");
+            $('#editing_word').val("");
+            $('#editing_word_meaning').val("");
+            $('#editing_word_example').val("");
+        } else {
+            mode = "edit";
+            $('#word_edit_modal_title').text("编辑单词");
+            $('#editing_word_id').val(word[0]);
+            $('#editing_word').val(word[1]);
+            $('#editing_word_meaning').val(word[2].replace(/<br\/>/g, '\n'));
+            $('#editing_word_example').val(word[3].replace(/<br\/>/g, '\n'));
+        }
+        // $('#table_word_list').row(word.);
+        $('#modal_btn_submit').click(function() {
+            if (!$('#editing_word').val()) {
+                word = [
+                    $('#editing_word_id').val(),
+                    $('#editing_word').val(),
+                    $('#editing_word_meaning').val(),
+                    $('#editing_word_example').val(),
+                ];
+                alert("单词不能为空！");
+                return;
+            }
+            $.post('/word_list/edit_or_create_word', {
+                word: {
+                    id: $('#editing_word_id').val(),
+                    word: $('#editing_word').val(),
+                    meaning: $('#editing_word_meaning').val().replace(/^\s*$(?:\r\n?|\n)/gm, ''),
+                    example: $('#editing_word_example').val().replace(/^\s*$(?:\r\n?|\n)/gm, ''),
+                },
+            }, function (word, status) {
+                if (status === "success") {
+                    console.log(word);
+                    if (mode === "edit") {
+                        table_word_list.row({selected: true}).data(word).draw('full-hold');
+                        table_word_list.row({selected: true}).deselect();
+                    } else {
+                        table_word_list.row.add(word).draw('full-hold');
+                    }
+                    // table_word_list.ajax.reload();
+                }
+            });
+            $('#word_edit_modal').modal('hide');
+        });
+    }
+
     $(document).ready(function () {
         if ("<%= type %>" == 'all') {
             $('#type_all').prop("checked", true);
@@ -61,46 +183,81 @@
             $('#type_known').prop("checked", true);
         }
         if ("<%= type %>") {
-            $('#table_word_list').DataTable({
-                // processing: true,
-                // serverSide: true,
+            table_word_list = $('#table_word_list').DataTable({
                 ajax: {
                     url: '/word_list/data?type=' + "<%= type %>",
                     type: 'GET',
-                    /*dataFilter: function(data) {
-                        var json = jQuery.parseJSON(data);
-                        json.recordsTotal = json.length;
-                        json.recordsFiltered = 10; // json.length;
-                        json.data = json.list;
-                        return JSON.stringify(json); // return JSON string
-                    }*/
                 },
+                buttons: [
+                    'selectAll',
+                    'selectNone',
+                    <% if (type == "all") { %>
+                    {
+                        text: "新建",
+                        action: function (e, dt, button, config) {
+                            edit_or_create_word(null);
+                        }
+                    },
+                    {
+                        extend: "selectedSingle",
+                        text: "编辑",
+                        action: function (e, dt, button, config) {
+                            edit_or_create_word(dt.rows({ selected: true }).data()[0]);
+                        },
+                    },
+                    <% } %>
+                    {
+                        extend: "selected",
+                        text: "删除",
+                        action: function (e, dt, button, config) {
+                            var word_ids = dt.rows({ selected: true }).data()
+                                .reduce((word_ids, word) => {
+                                    word_ids.push(word[0]);
+                                    return word_ids;
+                                }, []);
+                            delete_words(word_ids);
+                        },
+                    },
+                ],
+                dom: "<'row'" +
+                    "<'col-xs-12 col-sm-4 col-md-5'l>" +
+                    "<'col-xs-12 col-sm-4 col-md-4'B>" + 
+                    "<'col-xs-12 col-sm-1 col-md-1'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 language: {
-                    "decimal": "",
-                    "emptyTable": "空表无数据",
-                    "info": "第 _PAGE_ 页，共 _PAGES_ 页，共 _TOTAL_ 条记录",
-                    "infoEmpty": "无记录",
-                    "thousands": "",
-                    "lengthMenu": "每页 _MENU_ 个单词",
-                    "loadingRecords": "载入中……",
-                    "processing": "数据处理中……",
-                    "search": "搜索：",
-                    "zeroRecords": "未找到任何记录",
-                    "paginate": {
+                    buttons: {
+                        selectAll: "全选",
+                        selectNone: "全不选",
+                    },
+                    decimal: "",
+                    emptyTable: "空表无数据",
+                    info: "第 _PAGE_ 页，共 _PAGES_ 页，共 _TOTAL_ 条记录",
+                    infoEmpty: "无记录",
+                    thousands: "",
+                    lengthMenu: "每页 _MENU_ 个单词",
+                    loadingRecords: "载入中……",
+                    processing: "数据处理中……",
+                    search: "搜索：",
+                    select: {
+                        rows: { _: "(共选中 %d 条记录)", },
+                    },
+                    zeroRecords: "未找到任何记录",
+                    paginate: {
                         "first": "第一页",
                         "last": "最后一页",
                         "next": "下一页",
                         "previous": "上一页"
                     },
-                    "aria": {
-                        "sortAscending": ": 点击升序排列",
-                        "sortDescending": ": 点击降序排列",
-                    },
-                    // "infoFiltered": "(filtered from _MAX_ total records)"
                 },
                 ordering: false,
+                select: true,
             });
         }
+        $('#table_word_list tbody').on('dblclick', 'tr', function () {
+            table_word_list.row(this).select();
+            edit_or_create_word(table_word_list.row(this).data());
+        });
     });
 </script>
 <!--</div>-->

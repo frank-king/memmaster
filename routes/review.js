@@ -37,6 +37,6 @@ exports.next_word = function (req, res) {
         console.log(word);
         res.render('review.ejs', { word: word });
     }, function () {
-        //
+        res.render('no_words.ejs', { type: "复习" });
     });
 }

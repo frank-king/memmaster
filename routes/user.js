@@ -11,19 +11,11 @@ exports.signup = function (req, res) {
         var email = post.email;
         var password = md5(post.password);
 
-        db_user.check_exists(username, function() {
-            var message = "Error! user exists.";
-            console.log(message);
-            res.render('signup.ejs', { message: message });
-        });
-
         db_user.signup(username, email, password, function() {
-            var message = "Succesfully! Your account has been created.";
-            res.render('signup.ejs', { message: message });
             res.redirect('/login');
         });
     } else {
-        res.render('signup');
+        res.render('signup.ejs', { message: "" });
     }
 };
 
@@ -34,12 +26,14 @@ exports.login = function (req, res) {
         var username = post.user_name;
         var password = md5(post.password);
 
+        // console.log(username);
+        // console.log(password);
         db_user.verify_user(username, password, function (user) {
             req.session.user = user;
             console.log(user.id);
             res.redirect('/home/dashboard');
         }, function () {
-            var message = 'Wrong Credentials.';
+            var message = '用户名或密码错误';
             res.render('index.ejs', { message: message });
         });
     } else {
@@ -61,8 +55,8 @@ exports.dashboard = function (req, res, next) {
         // console.log(reviewed_today);
         res.render('dashboard.ejs', {
             user: user,
-            learnt_today: learnt_today,
-            reviewed_today: reviewed_today
+            learnt_today: learnt_today ? learnt_today : 0,
+            reviewed_today: reviewed_today ? reviewed_today : 0,
         });
     });
     // res.render('dashboard.ejs', { user: user });
@@ -106,3 +100,10 @@ exports.editprofile = function (req, res) {
     //     res.render('edit_profile.ejs', { data: results });
     // });
 };
+
+exports.check_username = function (req, res) {
+    db_user.check_exists(req.query.user_name,
+        () => res.status('500').end(),
+        () => res.status('200').end()
+    );
+}

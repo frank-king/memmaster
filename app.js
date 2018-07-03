@@ -42,6 +42,7 @@ app.use(session({
 // development only
 app.get('/', routes.index); // call for main index page
 app.get('/signup', user.signup); // call for signup page
+app.get('/user/check_username', user.check_username); // call for check username
 app.post('/signup', user.signup); // call for signup post 
 app.get('/login', routes.index); // call for login page
 app.post('/login', user.login); // call for login post
@@ -59,5 +60,7 @@ app.get('/review/next_word', review.next_word);
 
 app.get('/word_list', word_list.index);
 app.get('/word_list/data', word_list.data);
+app.post('/word_list/delete_words', word_list.delete_words);
+app.post('/word_list/edit_or_create_word', word_list.edit_or_create_word);
 // Middleware
 app.listen(8080);

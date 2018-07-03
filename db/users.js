@@ -1,11 +1,15 @@
-exports.check_exists = function(username, callback) {
-    var sql = "SELECT id, email, username FROM `users` " +
+exports.check_exists = function(username, exists, not_exists) {
+    var sql = "SELECT id FROM `users` " +
         "WHERE `username`='" + username + "'";
+    // console.log(sql);
     db.query(sql, function (err, results) {
+        // console.log(results);
         if (err) {
             throw err;
-        } else if (results) {
-            callback();
+        } else if (results.length > 0) {
+            exists();
+        } else {
+            not_exists();
         }
     });
 };
@@ -20,8 +24,10 @@ exports.get_user = function(user_id, callback) {
 
 exports.verify_user = function(username, password, onSucc, onFail) {
     var sql = "SELECT id, email, username FROM `users` " +
-        "WHERE `username`='" + username + "' and password = '" + password + "'";
+        "WHERE (`username`='" + username + "' and password = '" + password + "')";
+    // console.log(sql);
     db.query(sql, function (err, results) {
+        // console.log(results);
         if (err) {
             throw err;
         } else if (results) {

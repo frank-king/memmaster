@@ -84,6 +84,8 @@ exports.next_word = function (req, res) {
             var word = parse_word_entry(word);
             console.log(word);
             res.render('learning.ejs', { word: word });
+        }, function() {
+            res.render('no_words.ejs', { type: "学习" });
         });
     }
 }
